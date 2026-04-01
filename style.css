@@ -1,0 +1,86 @@
+
+        *{
+            margin: 0;
+            padding: 0;
+            background-color: antiquewhite;
+        }
+        #mian{
+            height: 100%;
+            width: 100%;
+        }
+        #navi,#navi_sub
+        {
+            display: flex;
+            align-items: center;
+        }
+        #navi{
+            padding-left: 20px;
+            padding-top: 10px;
+            justify-content: space-between;
+        }
+        .navi_com{
+            margin-right: 20px;
+        }
+        #head {
+            text-align: center;
+            margin-top: 100px;
+        }
+        #searchBar{
+            text-align: center;
+            margin-top: 50px;
+        }
+        #popular{
+            margin-top: 100px;
+        }
+        .card{
+            width: 200px;
+            border: 1px solid black;
+            padding: 10px;
+        }
+        #cards{
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        #books{
+            margin-bottom: 30px;
+            padding: 30px;
+        }
+        #why{
+            text-align: center;
+            margin-top: 100px;
+            margin-bottom: 20px;
+
+        }
+        #subitem{
+            display: flex;
+            align-items: center;
+            justify-content:space-around;
+            
+        }
+        #start{
+        display: block;
+        margin: 40px auto;     
+        padding: 12px 25px;
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+        }
+        .card img{
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .sub{
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-weight: 500;
+            transition: 0.2s;
+            cursor: pointer;
+        }
