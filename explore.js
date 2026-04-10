@@ -1,110 +1,122 @@
 let main = document.getElementById("main")
 
+let currentPage = 1
+let currentQuery = "fiction"
+let isFavoritesView = false
+
 function header(){
-    let outerDiv= document.createElement("div")
-    outerDiv.setAttribute("id","navi")
+    let div = document.createElement("div")
+    div.id="navi"
 
-    let innerDiv1 = document.createElement("div")
-    innerDiv1.innerHTML="BookFinder"
-    outerDiv.appendChild(innerDiv1)
-
-    let p = document.createElement("div")
-    p.setAttribute("id","navi_sub")
-    p.innerHTML=`
-        <div class="navi_com">Home</div>
-        <div class="navi_com">Explore</div>
-        <div class="navi_com">Favourites</div>
-        <div class="navi_com" id="darkBtn">Dark</div>
+    div.innerHTML=`
+        <div><b>BookFinder</b></div>
+        <div id="navi_sub">
+            <div class="navi_com" onclick="location.href='index.html'">Home</div>
+            <div class="navi_com">Explore</div>
+            <div class="navi_com" id="favBtn">Favourites</div>
+            <div class="navi_com" id="darkBtn">Dark</div>
+        </div>
     `
-    outerDiv.appendChild(p)
-
-    main.appendChild(outerDiv)
+    main.appendChild(div)
 }
 header()
 
 function searchBar(){
-    let p = document.createElement("div")
-    p.innerHTML=`
+    let div = document.createElement("div")
+    div.innerHTML=`
     <div id="head">
         <h2>Find Your Next Book</h2>
-        <h4>Search From thousands of books instantly</h4>
+        <h4>Search from thousands of books</h4>
     </div>
+
     <div id="searchBar">
-        <input type="text" placeholder="Search by title , author .." id="input">
+        <input id="input" placeholder="Search books...">
         <button id="searchBtn">Search</button>
-    </div>`
-    main.appendChild(p)
+    </div>
+    `
+    main.appendChild(div)
 }
 searchBar()
 
+let backBtn = document.createElement("button")
+backBtn.innerText="⬅ Back to Explore"
+backBtn.style.display="none"
+backBtn.style.margin="20px"
+main.appendChild(backBtn)
+
 let cards = document.createElement("div")
-cards.setAttribute("id","cards")
+cards.id="cards"
 main.appendChild(cards)
 
+
 function card(book){
-    let p = document.createElement("div")
-    p.classList.add("card")
+    let favs = JSON.parse(localStorage.getItem("favs")) || []
+    let isFav = favs.some(f=>f.key===book.key)
 
-    let img = document.createElement("img")
-    img.src=`https://covers.openlibrary.org/b/id/${book.card_img}-M.jpg`
-    p.appendChild(img)
+    let div = document.createElement("div")
+    div.className="card"
 
-    let title = document.createElement("p")
-    title.innerHTML=book.title
-    p.appendChild(title)
+    div.innerHTML=`
+        <img src="https://covers.openlibrary.org/b/id/${book.cover}-M.jpg">
+        <p><b>${book.title}</b></p>
+        <p>${book.author || "Unknown"}</p>
+        <button class="fav">${isFav ? "❤️" : "🤍"}</button>
+    `
 
-    let author = document.createElement("p")
-    author.innerHTML=book.author
-    p.appendChild(author)
+    div.querySelector(".fav").onclick=(e)=>{
+        e.stopPropagation()
+        toggleFav(book)
+    }
 
-    p.addEventListener("click", ()=>{
-        showPopup(book)
-    })
+    div.onclick=()=>showPopup(book)
 
-    return p 
+    return div
 }
 
-async function friction_books(parame){
-    let a = await fetch(`https://openlibrary.org/search.json?q=${parame}`)
-    let p = await a.json()
 
-    if(p.docs.length==0){
-        alert("No results")
-        return
-    }
+async function fetchBooks(q,page=1){
+    isFavoritesView = false
+    backBtn.style.display="none"
 
     cards.innerHTML=""
 
-    let data = p.docs.map((e)=>({
-        author: e.author_name?.[0],
-        card_img: e.cover_i,
-        title: e.title,
-        year: e.first_publish_year,
-        subject: e.subject?.slice(0,3),
-        key: e.key
-    }))
+    for(let i=0;i<8;i++){
+        let sk = document.createElement("div")
+        sk.className="skeleton"
+        cards.appendChild(sk)
+    }
 
-    data.forEach((e)=>{
-        cards.appendChild(card(e))
+    let res = await fetch(`https://openlibrary.org/search.json?q=${q}&page=${page}`)
+    let data = await res.json()
+
+    cards.innerHTML=""
+
+    data.docs.slice(0,12).forEach(e=>{
+        let book={
+            title:e.title,
+            author:e.author_name?.[0],
+            cover:e.cover_i,
+            key:e.key
+        }
+        cards.appendChild(card(book))
     })
 }
 
-function setupSearch(){
-    let input = document.getElementById("input")
-    let btn = document.getElementById("searchBtn")
+fetchBooks(currentQuery)
 
-    btn.addEventListener("click", ()=>{
-        if(input.value==="") return alert("Enter something")
-        friction_books(input.value)
-    })
+
+document.getElementById("searchBtn").onclick=()=>{
+    let val = document.getElementById("input").value
+    if(!val) return
+    currentQuery = val
+    currentPage = 1
+    fetchBooks(val)
 }
-setupSearch()
+
 
 async function showPopup(book){
     let res = await fetch(`https://openlibrary.org${book.key}.json`)
     let data = await res.json()
-
-    let desc = data.description?.value || data.description || "No description"
 
     let popup = document.createElement("div")
     popup.id="popup"
@@ -112,22 +124,76 @@ async function showPopup(book){
     popup.innerHTML=`
         <div id="popupBox">
             <h2>${book.title}</h2>
-            <p>${book.author}</p>
-            <p>${book.year || "N/A"}</p>
-            <p>${book.subject?.join(", ") || "N/A"}</p>
-            <p>${desc}</p>
-            <button id="closeBtn">Close</button>
+            <p><b>Author:</b> ${book.author}</p>
+            <p>${data.description?.value || "No description available"}</p>
+            <button id="close">Close</button>
         </div>
     `
 
     document.body.appendChild(popup)
-
-    document.getElementById("closeBtn").onclick=()=>popup.remove()
+    document.getElementById("close").onclick=()=>popup.remove()
 }
 
-friction_books("fiction")
 
-/* DARK MODE */
+function toggleFav(book){
+    let favs = JSON.parse(localStorage.getItem("favs")) || []
+    let exists = favs.find(f=>f.key===book.key)
+
+    if(exists){
+        favs = favs.filter(f=>f.key!==book.key)
+    }else{
+        favs.push(book)
+    }
+
+    localStorage.setItem("favs",JSON.stringify(favs))
+    fetchBooks(currentQuery,currentPage)
+}
+
+document.getElementById("favBtn").onclick=()=>{
+    let favs = JSON.parse(localStorage.getItem("favs")) || []
+
+    isFavoritesView = true
+    backBtn.style.display="block"
+
+    cards.innerHTML=""
+
+    if(favs.length===0){
+        cards.innerHTML="<h2 style='text-align:center'>No Favorites Yet ❤️</h2>"
+        return
+    }
+
+    favs.forEach(b=>cards.appendChild(card(b)))
+}
+
+backBtn.onclick=()=>{
+    fetchBooks(currentQuery,currentPage)
+}
+
+
+let pagination = document.createElement("div")
+pagination.id="pagination"
+
+pagination.innerHTML=`
+    <button id="prev">Prev</button>
+    <button id="next">Next</button>
+`
+
+main.appendChild(pagination)
+
+document.getElementById("prev").onclick=()=>{
+    if(isFavoritesView) return
+    if(currentPage>1){
+        currentPage--
+        fetchBooks(currentQuery,currentPage)
+    }
+}
+
+document.getElementById("next").onclick=()=>{
+    if(isFavoritesView) return
+    currentPage++
+    fetchBooks(currentQuery,currentPage)
+}
+
 let darkBtn = document.getElementById("darkBtn")
 
 if(localStorage.getItem("theme")==="dark"){
