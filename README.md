@@ -1,5 +1,5 @@
 # 📚 Open Library Book Finder
-
+# checkout project here : https://open-book-liberary.vercel.app/
 ## 📌 About the Project
 
 This is a simple web application that helps users search for books and explore basic details like the title, author, and publish year. The main idea behind this project is to create a clean and easy-to-use interface where users can quickly find books using a search bar.
@@ -115,3 +115,6 @@ Currently in progress as part of a learning milestone.
 * Add infinite scrolling
 
 ---
+
+
+# adding chatbox using hugging face to have suggesstion which book to read 
